@@ -11,7 +11,7 @@ define(['./hogan', './text', 'module'], function(hogan, text, module) {
     _buildMap = {},
     _buildTemplateText = (
         'define("{{pluginName}}!{{moduleName}}", ["hogan"{{#partials}}, "{{pluginName}}!{{path}}"{{/partials}}], function(hogan){'+
-        '  var tmpl = new hogan.Template({{{fn}}}, "", hogan),'+
+        '  var tmpl = new hogan.Template({{{fn}}}, {{{text}}}, hogan),'+
         '      extend = function(a, b) { for (var k in b) { a[k] = b[k]; } return a; },'+
         '      parts = { {{#partials}}"{{name}}": arguments[{{order}}].template,{{/partials}} "": null},'+
         '      render = function() { return tmpl.render.apply(tmpl, arguments); };'+
@@ -87,6 +87,7 @@ define(['./hogan', './text', 'module'], function(hogan, text, module) {
                 // and should always be a string
                 compilationOptions.asString = true;
                 compiled.asString = hogan.compile(data, compilationOptions);
+                compiled.text = data;
             }
 
             _buildMap[moduleName] = compiled;
@@ -199,7 +200,8 @@ define(['./hogan', './text', 'module'], function(hogan, text, module) {
                 pluginName: pluginName,
                 moduleName: moduleName,
                 partials: partials,
-                fn: compiled.asString
+                fn: compiled.asString,
+                text: JSON.stringify(compiled.text)
             }));
         }
     }
