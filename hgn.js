@@ -1,6 +1,8 @@
 /**@license
  * RequireJS Hogan Plugin | v0.4.0
  * Author: Miller Medeiros | MIT License
+ *
+ * Added ability to append a helpers object into the context stack
  */
 define(['./hogan', './text', 'module'], function(hogan, text, module) {
     var DEFAULT_EXTENSION = '.mustache',
@@ -13,7 +15,10 @@ define(['./hogan', './text', 'module'], function(hogan, text, module) {
         '      extend = function(a, b) { for (var k in b) { a[k] = b[k]; } return a; },'+
         '      parts = { {{#partials}}"{{name}}": arguments[{{order}}].template,{{/partials}} "": null},'+
         '      render = function() { return tmpl.render.apply(tmpl, arguments); };'+
-        '  tmpl.ri = function(context, partials, indent) { return this.r(context, extend(parts, partials), indent); };'+
+        '  tmpl.ri = function(context, partials, indent) {'+
+        '    context.unshift(hogan.helpers);'+
+        '    return this.r(context, extend(parts, partials), indent);'+
+        '  };'+
         '  render.template = tmpl;'+
         '  return render;'+
         '});\n'
@@ -93,6 +98,12 @@ define(['./hogan', './text', 'module'], function(hogan, text, module) {
             render.text = template.text;
             render.template = template;
 
+            // Adding helpers from hogan.helpers
+            template.ri = function(context, partials, indent) {
+              context.unshift(hogan.helpers);
+              return this.r(context, partials, indent);
+            };
+
             // if there are partials in the template, grab them
             if (reqs.length) {
                 req(map.call(reqs, function(p) { return module.id+'!'+partialNames[p]; }), function() {
@@ -101,6 +112,7 @@ define(['./hogan', './text', 'module'], function(hogan, text, module) {
                         parts[reqs[i]] = arguments[i] && arguments[i].template;
                     }
                     template.ri = function(context, partials, indent) {
+                      context.unshift(hogan.helpers);
                       return this.r(context, mixIn(parts, partials), indent);
                     };
                     onLoad(render);
